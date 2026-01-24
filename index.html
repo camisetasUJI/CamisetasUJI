@@ -137,6 +137,7 @@
             border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); outline: none; 
         }
         input[type="checkbox"] { width: auto; margin-right: 10px; }
+        textarea { resize: vertical; min-height: 100px; }
 
         /* COLORES */
         .color-group-tag {
@@ -169,6 +170,31 @@
         }
         .size-box:focus-within { border-color: #6366f1; background: #fff; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.1); }
         .size-box input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+        /* NUEVO: SELECTOR DE IMPRESIÓN VISUAL */
+        .print-options-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;
+        }
+        @media (max-width: 600px) { .print-options-grid { grid-template-columns: 1fr; } }
+
+        .print-option {
+            cursor: pointer; position: relative;
+        }
+        .print-option input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .print-card {
+            border: 2px solid var(--border);
+            border-radius: 12px; padding: 15px;
+            text-align: center; transition: var(--transition);
+            background: #fff; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .print-option input:checked + .print-card {
+            border-color: #6366f1; background: #f5f3ff;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+        }
+        .print-icon { font-size: 1.8rem; margin-bottom: 8px; display: block; }
+        .print-title { font-weight: 800; font-size: 0.95rem; display: block; color: var(--text-main); }
+        .print-desc { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 4px; display: block; }
+
 
         /* WHATSAPP Y FOOTER */
         .whatsapp-box {
@@ -224,7 +250,10 @@
             <input type="hidden" name="_template" value="table">
             <input type="hidden" name="_captcha" value="false">
             <input type="hidden" name="Tipo_Camiseta_Seleccionada" id="selectedTypeInput" value="PREMIUM">
-            <input type="hidden" name="Precio_Estimado" id="estimatedPriceInput" value="0">
+            <!-- Precio Estimado que se envía al correo -->
+            <input type="hidden" name="Precio_Total_Estimado" id="estimatedPriceInput" value="0€">
+            <!-- Resumen detallado autogenerado -->
+            <input type="hidden" name="Resumen_Detallado_Pedido" id="detailedSummaryInput" value="">
 
             <div class="card">
                 <!-- 01: DATOS -->
@@ -291,7 +320,6 @@
                             <div class="size-box"><span>L</span><small class="size-measures">54x73cm</small><input type="number" name="Basic_L" min="0" class="qty-in basic-qty"></div>
                             <div class="size-box"><span>XL</span><small class="size-measures">58x75cm</small><input type="number" name="Basic_XL" min="0" class="qty-in basic-qty"></div>
                             <div class="size-box"><span>XXL</span><small class="size-measures">62x77cm</small><input type="number" name="Basic_XXL" min="0" class="qty-in basic-qty"></div>
-                            <!-- Corrección aquí: Clases cambiadas a basic-qty y cierre de div arreglado -->
                             <div class="size-box"><span>3XL</span><small class="size-measures">66x79cm</small><input type="number" name="Basic_3XL" min="0" class="qty-in basic-qty"></div>
                             <div class="size-box"><span>4XL</span><small class="size-measures">70x81cm</small><input type="number" name="Basic_4XL" min="0" class="qty-in basic-qty"></div>
                         </div>
@@ -356,13 +384,32 @@
                 <div class="section">
                     <div class="section-title"><div class="step-num">3</div> Diseño y Presupuesto</div>
                     
-                    <div class="form-group">
-                        <label>Tipo de Impresión</label>
-                        <select name="Tipo_Impresion" id="printTypeSelect" onchange="updateTotal()">
-                            <option value="1_INK">1 Serigrafía (1 Tinta/Cara)</option>
-                            <option value="2_INK">2 Serigrafías (2 Tintas o 2 Caras)</option>
-                            <option value="FULL">A Todo Color (Full Color/DTF)</option>
-                        </select>
+                    <label>Tipo de Impresión (Selecciona una)</label>
+                    <div class="print-options-grid">
+                        <label class="print-option">
+                            <input type="radio" name="Tipo_Impresion" value="1_INK" checked onchange="updateTotal()">
+                            <div class="print-card">
+                                <span class="print-icon">☝️</span>
+                                <span class="print-title">Serigrafía Básica</span>
+                                <span class="print-desc">1 Tinta / 1 Cara<br>Más Económico</span>
+                            </div>
+                        </label>
+                        <label class="print-option">
+                            <input type="radio" name="Tipo_Impresion" value="2_INK" onchange="updateTotal()">
+                            <div class="print-card">
+                                <span class="print-icon">✌️</span>
+                                <span class="print-title">Serigrafía Pro</span>
+                                <span class="print-desc">2 Tintas o 2 Caras<br>Mayor Detalle</span>
+                            </div>
+                        </label>
+                        <label class="print-option">
+                            <input type="radio" name="Tipo_Impresion" value="FULL" onchange="updateTotal()">
+                            <div class="print-card">
+                                <span class="print-icon">🌈</span>
+                                <span class="print-title">Full Color / DTF</span>
+                                <span class="print-desc">A todo color<br>Sin límite de tintas</span>
+                            </div>
+                        </label>
                     </div>
 
                     <div class="checkbox-wrapper">
@@ -370,6 +417,11 @@
                         <label for="designCheck" style="margin:0; cursor:pointer; text-transform:none; font-size:0.95rem;">
                             Incluir Servicio de Diseño (+1€/prenda)
                         </label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label>Observaciones o Instrucciones Extra</label>
+                        <textarea name="Observaciones" placeholder="Ej: Fecha límite, detalles de entrega, dudas sobre el diseño..."></textarea>
                     </div>
 
                     <div class="whatsapp-box">
@@ -405,10 +457,13 @@
         const contentBasic = document.getElementById('contentBasic');
         const contentPremium = document.getElementById('contentPremium');
         const hiddenInput = document.getElementById('selectedTypeInput');
+        
+        // Inputs ocultos para envío de datos
         const hiddenPrice = document.getElementById('estimatedPriceInput');
+        const hiddenSummary = document.getElementById('detailedSummaryInput');
+
         const totalDisplay = document.getElementById('totalCount');
         const priceDisplay = document.getElementById('totalPrice');
-        const printSelect = document.getElementById('printTypeSelect');
         const designCheck = document.getElementById('designCheck');
 
         let currentType = 'PREMIUM';
@@ -436,7 +491,6 @@
                 btnPremium.classList.remove('active');
                 contentBasic.classList.add('active');
                 contentPremium.classList.remove('active');
-                // Limpia los inputs del otro tipo para no sumar doble
                 document.querySelectorAll('.premium-qty').forEach(i => i.value = '');
             } else {
                 btnPremium.classList.add('active');
@@ -448,49 +502,77 @@
             updateTotal();
         }
 
+        function getPrintType() {
+            // Busca qué radio button de impresión está seleccionado
+            const selected = document.querySelector('input[name="Tipo_Impresion"]:checked');
+            return selected ? selected.value : '1_INK';
+        }
+
         function getPricePerUnit(type, printType, qty) {
             const tiers = PRICING[type][printType];
             if (qty > 50) return tiers[50];
             if (qty >= 20) return tiers[20];
             if (qty >= 10) return tiers[10];
-            return tiers[10]; // Precio base para <10 (aunque se recomienda min 10)
+            return tiers[10]; 
         }
 
         function updateTotal() {
             let totalQty = 0;
-            // Selecciona solo los inputs del tipo activo
             const selector = currentType === 'BASIC' ? '.basic-qty' : '.premium-qty';
+            const inputs = document.querySelectorAll(selector);
             
-            document.querySelectorAll(selector).forEach(input => {
-                totalQty += parseInt(input.value) || 0;
+            // 1. Calcular Cantidad Total y Generar Resumen
+            let summaryArray = [];
+            
+            inputs.forEach(input => {
+                const val = parseInt(input.value) || 0;
+                if (val > 0) {
+                    totalQty += val;
+                    // Nombre de la talla (ej: Basic_M) quitando el prefijo
+                    const sizeName = input.name.replace('Basic_', '').replace('Premium_', '');
+                    summaryArray.push(`${val}x ${sizeName}`);
+                }
             });
             totalDisplay.innerText = totalQty;
 
-            // Calcular Precio
+            // 2. Obtener Color Seleccionado para el resumen
+            const colorName = currentType === 'BASIC' ? 'Color_Basic' : 'Color_Premium';
+            const selectedColor = document.querySelector(`input[name="${colorName}"]:checked`)?.value || 'Sin color';
+
+            // 3. Calcular Precio
             let finalPrice = 0;
+            const printType = getPrintType(); // Usa la nueva función para los radios
+
             if (totalQty > 0) {
-                const printType = printSelect.value;
                 const unitPrice = getPricePerUnit(currentType, printType, totalQty);
                 let totalPrice = unitPrice * totalQty;
 
-                // Sumar servicio de diseño
                 if (designCheck.checked) {
                     totalPrice += (1 * totalQty);
                 }
-                
                 finalPrice = totalPrice;
             }
 
-            // Mostrar
-            priceDisplay.innerText = finalPrice.toFixed(2) + "€";
-            hiddenPrice.value = finalPrice.toFixed(2);
+            // 4. Actualizar Textos y Valores Ocultos
+            const priceString = finalPrice.toFixed(2) + "€";
+            
+            priceDisplay.innerText = priceString;
+            hiddenPrice.value = priceString; // Envía "120.00€"
+
+            // 5. Generar Resumen Detallado para el email
+            if (totalQty > 0) {
+                const details = `TIPO: ${currentType} | COLOR: ${selectedColor} | TALLAS: ${summaryArray.join(', ')} | IMPRESIÓN: ${printType}`;
+                hiddenSummary.value = details;
+            } else {
+                hiddenSummary.value = "";
+            }
             
             // Advertencia cantidad baja
             if(totalQty > 0 && totalQty < 10) {
-                priceDisplay.style.color = "#f43f5e"; // Rojo si es menos del mínimo
+                priceDisplay.style.color = "#f43f5e";
                 priceDisplay.innerText = "Mín. 10 uds";
             } else {
-                priceDisplay.style.color = "#38bdf8"; // Azul normal
+                priceDisplay.style.color = "#38bdf8";
             }
         }
 
@@ -520,6 +602,9 @@
                 return;
             }
             
+            // Última actualización por seguridad antes de enviar
+            updateTotal();
+
             submitBtn.innerText = "Enviando...";
             submitBtn.disabled = true;
             
